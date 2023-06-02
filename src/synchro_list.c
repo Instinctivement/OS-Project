@@ -4,8 +4,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
-#include "synchro_list.h"
-char* fichier_log_f = "ModLog/log.txt";
+#include "includes.h"
+
 
 FILE* synchroList(const char* file1, const char* file2) {
 
@@ -20,7 +20,7 @@ FILE* synchroList(const char* file1, const char* file2) {
 
         printf("Erreur lors de l'ouverture des fichiers.\n");
         enregistrer_erreur("Erreur lors de l'ouverture des fichiers.");
-        save_data_log(fichier_log_f, "Module Synchro : Erreur lors de l'ouverture des deux fichiers.");
+        save_data_log(fichier_log, "Module Synchro : Erreur lors de l'ouverture des deux fichiers.");
         return NULL;
 
     }
@@ -39,7 +39,7 @@ FILE* synchroList(const char* file1, const char* file2) {
 
         printf("Erreur lors de la création du fichier de sortie.\n");
         enregistrer_erreur("Erreur lors de la création du fichier de sortie.");
-        save_data_log(fichier_log_f, "Module Synchro : Erreur lors de la création du fichier de sortie.");
+        save_data_log(fichier_log, "Module Synchro : Erreur lors de la création du fichier de sortie.");
         fclose(fp1);
 
         fclose(fp2);
@@ -73,7 +73,7 @@ FILE* synchroList(const char* file1, const char* file2) {
 
         // Si la ligne n'a pas été trouvée dans le deuxième fichier, l'écrire dans le fichier de sortie
 
-        if (!found) {
+        if (!found) { 
 
             fputs(line1, fpOutput);
         }
@@ -87,7 +87,7 @@ FILE* synchroList(const char* file1, const char* file2) {
     fclose(fpOutput);
 
     printf("Comparaison terminée. Le résultat a été écrit dans le fichier listeAcopier\n");
-    save_data_log(fichier_log_f, "Module Synchro : Comparaison terminée. Le résultat a été écrit dans le fichier listeAcopier.");
+    save_data_log(fichier_log, "Module Synchro : Comparaison terminée. Le résultat a été écrit dans le fichier listeAcopier.");
 
     return fpOutput;
 

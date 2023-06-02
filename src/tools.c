@@ -7,6 +7,8 @@
 #include "tools.h"
 #define MAX_LINE_LENGTH 512
 
+char* fichier_log = "ModLog/log.txt";
+
 int save_data_log(const char *fichier_log, const char *data)
 {
     FILE *fichier = NULL;

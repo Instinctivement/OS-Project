@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <semaphore.h>
 #include "includes.h"
+
 #define P(sem) sem_wait(&sem)
 #define V(sem) sem_post(&sem)
 #define P(sem2) sem_wait(&sem2)
@@ -13,28 +14,27 @@
 #define V(mutex) sem_post(&mutex)
 #define P(mutex2) sem_wait(&mutex2)
 #define V(mutex2) sem_post(&mutex2)
+
 sem_t mutex;
 sem_t mutex2;
 sem_t sem;
 sem_t sem2;
-int actif = 0, prod = 0, back = 0, is_exec=0;
-const char* fichierProd = "elementProd.txt";
-const char* fichierBack = "elementBack.txt";
-const char* fichierInt = "elementInt.txt";
-char* fichier_log = "ModLog/log.txt";
-char* nom_fichier_copie = "listToCopy.txt";
+int actif = 0, prod = 0, back = 0, is_exec = 0;
+const char *fichierProd = "elementProd.txt";
+const char *fichierBack = "elementBack.txt";
+const char *fichierInt = "elementInt.txt";
+//char *fichier_log = "ModLog/log.txt";
+char *nom_fichier_copie = "listToCopy.txt";
 FILE *fichier_copie = NULL;
 
+void *integration(void *arg);
+void *copy_list_thread(void *arg);
+void *synchro_list_thread(void *arg);
+void *test_disponibilite_thread(void *arg);
+void *backup(void *arg);
+void *production(void *arg);
 
-void * integration(void *arg);
-void * copy_list_thread(void *arg);
-void * synchro_list_thread(void *arg);
-void * test_disponibilite_thread(void *arg);
-void * backup(void * arg);
-void * production(void * arg);
-
-
-int main(){
+int main() {
     int *ptr1;
     int *ptr2;
     int *ptr3;
@@ -45,21 +45,21 @@ int main(){
     sem_init(&mutex2, PTHREAD_PROCESS_SHARED, 0);
     printf("\n\tPROJET DE GESTION D'UN SERVEUR D'INTÉGRATION\n");
     printf("\t---------------------------------------------\n");
-    if(pthread_create(&integration_t, NULL, (void *(*)(void *)) integration, NULL) != 0 ){
+    if (pthread_create(&integration_t, NULL, (void *(*)(void *))integration, NULL) != 0) {
         fprintf(stderr, "Erreur lors de la création du thread d'intégration\n");
         exit(EXIT_FAILURE);
     }
-    if(pthread_create(&production_t, NULL, (void *(*)(void *)) production, NULL) != 0 ){
+    if (pthread_create(&production_t, NULL, (void *(*)(void *))production, NULL) != 0) {
         fprintf(stderr, "Erreur lors de la création du thread de production\n");
         exit(EXIT_FAILURE);
     }
-    if(pthread_create(&backup_t, NULL, (void *(*)(void *)) backup, NULL) != 0 ){
+    if (pthread_create(&backup_t, NULL, (void *(*)(void *))backup, NULL) != 0) {
         fprintf(stderr, "Erreur lors de la création du thread de backup\n");
         exit(EXIT_FAILURE);
     }
-    pthread_join(integration_t, (void **) &ptr1);
-    pthread_join(production_t, (void **) &ptr2);
-    pthread_join(backup_t, (void **) &ptr3);
+    pthread_join(integration_t, (void **)&ptr1);
+    pthread_join(production_t, (void **)&ptr2);
+    pthread_join(backup_t, (void **)&ptr3);
     printf("\n\tAFFICHAGE DES STATISTIQUES DU SERVEUR\n");
     printf("\t----------------------------------------\n");
     printf("\tOn a recu %d erreurs\n", get_nombre_erreurs());
@@ -67,8 +67,8 @@ int main(){
     return EXIT_SUCCESS;
 }
 
-void * production(void * arg){
-    if(is_exec==0){
+void *production(void *arg) {
+    if (is_exec == 0) {
         P(mutex);
         prod = 1;
         back = 0;
@@ -80,12 +80,12 @@ void * production(void * arg){
     return NULL;
 }
 
-void * backup(void * arg){
-    if(is_exec==0){
+void *backup(void *arg) {
+    if (is_exec == 0) {
         P(mutex);
         prod = 0;
         back = 1;
-        is_exec=1;
+        is_exec = 1;
         creerListProd("BackupServer", fichierBack);
         V(mutex2);
         V(mutex);
@@ -93,22 +93,22 @@ void * backup(void * arg){
     return NULL;
 }
 
-void * test_disponibilite_thread(void *arg){
+void *test_disponibilite_thread(void *arg) {
     P(mutex2);
-     if(prod == 1){
-         actif = 1;
-         printf("Serveur de production actif...\n");
-         save_data_log(fichier_log, "Module test dispo: Serveur de production actif pour le transfère de donnée.");
-     }else{
-         actif = 2;
-         printf("Serveur de backup actif...\n");
-         save_data_log(fichier_log, "Module test dispo: Serveur de backup actif pour le transfère de donnée.");
-     }
-     V(sem);
-     return NULL;
+    if (prod == 1) {
+        actif = 1;
+        printf("Serveur de production actif...\n");
+        save_data_log(fichier_log, "Module test dispo: Serveur de production actif pour le transfère de donnée.");
+    } else {
+        actif = 2;
+        printf("Serveur de backup actif...\n");
+        save_data_log(fichier_log, "Module test dispo: Serveur de backup actif pour le transfère de donnée.");
+    }
+    V(sem);
+    return NULL;
 }
 
-void * synchro_list_thread(void *arg){
+void *synchro_list_thread(void *arg) {
     P(sem);
     fichier_copie = synchroList(fichierProd, fichierInt);
     V(sem);
@@ -116,20 +116,20 @@ void * synchro_list_thread(void *arg){
     return NULL;
 }
 
-void * copy_list_thread(void *arg){
+void *copy_list_thread(void *arg) {
     int valeur = 0;
     P(sem2);
     P(sem);
-    if(actif == 1){
+    if (actif == 1) {
         valeur = copy_list(nom_fichier_copie, "Production", "Integration");
-    }else{
+    } else {
         valeur = copy_list(nom_fichier_copie, "Backup", "Integration");
     }
-    if(valeur==0){
+    if (valeur == 0) {
         printf("Copy de list de fichier avec succès\n");
         creerListProd("IntergrationServer", fichierInt);
         save_data_log(fichier_log, "Module copy: Copy de list de fichier avec succès");
-    }else{
+    } else {
         printf("Erreur lors de la copie du fichier\n");
         save_data_log(fichier_log, "Module copy: Erreur lors de la copie du fichier");
     }
@@ -138,7 +138,7 @@ void * copy_list_thread(void *arg){
     return NULL;
 }
 
-void * integration(void *arg){
+void *integration(void *arg) {
     sem_init(&sem, PTHREAD_PROCESS_SHARED, 0);
     sem_init(&sem2, PTHREAD_PROCESS_SHARED, 0);
     pthread_t thread_test;
@@ -148,23 +148,23 @@ void * integration(void *arg){
     int *ptr2;
     int *ptr3;
 
-    if(pthread_create(&thread_test, NULL,test_disponibilite_thread,NULL)!=0){
+    if (pthread_create(&thread_test, NULL, test_disponibilite_thread, NULL) != 0) {
         fprintf(stderr, "Erreur lors de la création du thread de test de disponibilité\n");
         save_data_log(fichier_log, "Module integration: Erreur lors de la création du thread de test de disponibilité");
         exit(EXIT_FAILURE);
     }
-    if(pthread_create(&thread_backup, NULL,copy_list_thread,NULL)!=0){
+    if (pthread_create(&thread_backup, NULL, copy_list_thread, NULL) != 0) {
         fprintf(stderr, "Erreur lors de la création du thread de copy liste\n");
         save_data_log(fichier_log, "Module integration: Erreur lors de la création du thread de copy liste");
         exit(EXIT_FAILURE);
     }
-    if(pthread_create(&thread_synchro, NULL,synchro_list_thread,NULL)!=0){
+    if (pthread_create(&thread_synchro, NULL, synchro_list_thread, NULL) != 0) {
         fprintf(stderr, "Erreur lors de la création du thread de synchro\n");
         save_data_log(fichier_log, "Module integration: Erreur lors de la création du thread de synchro");
         exit(EXIT_FAILURE);
     }
 
-    pthread_join(thread_test, (void **) &ptr1);
-    pthread_join(thread_synchro, (void **) &ptr2);
-    pthread_join(thread_backup, (void **) &ptr3);
+    pthread_join(thread_test, (void **)&ptr1);
+    pthread_join(thread_synchro, (void **)&ptr2);
+    pthread_join(thread_backup, (void **)&ptr3);
 }

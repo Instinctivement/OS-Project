@@ -4,10 +4,9 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
-#include "copy_list.h"
+#include "includes.h"
 #define MAX_FILENAME_LENGTH 512
 #define MAX_LINE_LENGTH 512
-char* fichier_log_f = "ModLog/log.txt";
 
 int copy_list(char* nomfichier, char*nomdossiersource, char* nomdossierdestination){
 
@@ -20,7 +19,7 @@ int copy_list(char* nomfichier, char*nomdossiersource, char* nomdossierdestinati
     if(f == NULL){
         printf("Erreur lors de l'ouverture du fichier : %s\n", nomfichier);
         enregistrer_erreur("Erreur lors de l'ouverture du fichier.");
-        save_data_log(fichier_log_f, "Module Copy : Erreur lors de l'ouverture du fichier %s.");
+        save_data_log(fichier_log, "Module Copy : Erreur lors de l'ouverture du fichier %s.");
         return 1;
     }
 
@@ -31,7 +30,7 @@ int copy_list(char* nomfichier, char*nomdossiersource, char* nomdossierdestinati
         sscanf(ligne, "%s", nom_fic);
 
         printf("%s\n", nom_fic);
-        save_data_log(fichier_log_f,  "Module Copy : copie d'un fichier. ");
+        save_data_log(fichier_log,  "Module Copy : copie d'un fichier. ");
         if(copier_fichier_vers_dossier(nom_fic, nomdossiersource, nomdossierdestination) != 0){
             return 0 ;
         }
@@ -65,7 +64,7 @@ int copier_fichier_vers_dossier(char* nomfichier, char* nomdossiersource, char* 
     if(fsource == NULL){
         printf("Erreur lors de l'ouverture du fichier source : %s\n", nom_fichier_source);
         enregistrer_erreur("Erreur lors de l'ouverture du fichier source.");
-        save_data_log(fichier_log_f, "Module copy: Erreur lors de l'ouverture du fichier source.");
+        save_data_log(fichier_log, "Module copy: Erreur lors de l'ouverture du fichier source.");
         return 1 ;
     }
 
@@ -74,7 +73,7 @@ int copier_fichier_vers_dossier(char* nomfichier, char* nomdossiersource, char* 
     if(fdestination == NULL){
         printf("Erreur lors de l'ouverture du fichier destination : %s\n", nom_fichier_destination);
         enregistrer_erreur("Erreur lors de l'ouverture du fichier destination.");
-        save_data_log(fichier_log_f, "Module copy: Erreur lors de l'ouverture de du fichier destination.");
+        save_data_log(fichier_log, "Module copy: Erreur lors de l'ouverture de du fichier destination.");
         return 1 ;
     }
 
