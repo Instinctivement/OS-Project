@@ -6,19 +6,19 @@
 #include <time.h>
 #include "includes.h"
 #define MAX_FILENAME_LENGTH 512
-#define MAX_LINE_LENGTH 512
+#define MAX_LINE_LENGTH 512 
 
-int copy_list(char* nomfichier, char*nomdossiersource, char* nomdossierdestination){
+int copy_list(char* nameFile, char*sourceFolderName, char* destinationFolderName){
 
     FILE* f = NULL ;
     char ligne[50] ;
     char nom_fic[50] ;
 
-    f = fopen(nomfichier, "r");
+    f = fopen(nameFile, "r");
 
     if(f == NULL){
-        printf("Erreur lors de l'ouverture du fichier : %s\n", nomfichier);
-        enregistrer_erreur("Erreur lors de l'ouverture du fichier.");
+        printf("Erreur lors de l'ouverture du fichier : %s\n", nameFile);
+        save_error("Erreur lors de l'ouverture du fichier.");
         save_data_log(fichier_log, "Module Copy : Erreur lors de l'ouverture du fichier %s.");
         return 1;
     }
@@ -31,39 +31,39 @@ int copy_list(char* nomfichier, char*nomdossiersource, char* nomdossierdestinati
 
         printf("%s\n", nom_fic);
         save_data_log(fichier_log,  "Module Copy : copie d'un fichier. ");
-        if(copier_fichier_vers_dossier(nom_fic, nomdossiersource, nomdossierdestination) != 0){
+        if(copy_file_to_folder(nom_fic, sourceFolderName, destinationFolderName) != 0){
             return 0 ;
         }
-        enregistrer_fichier_recu(nom_fic);
+        save_received_file(nom_fic);
     }
 
     return 0 ;
 }
 
-int copier_fichier_vers_dossier(char* nomfichier, char* nomdossiersource, char* nomdossierdestination){
+int copy_file_to_folder(char* fileName, char* sourceFolderName, char* destinationFolderName){
 
     FILE* fsource = NULL ;
     FILE* fdestination = NULL ;
     char c ;
 
-    char* nom_fichier_source = malloc(sizeof(char)*strlen(nomfichier) + sizeof(char)*strlen(nomdossiersource) + 1);
-    char* nom_fichier_destination = malloc(sizeof(char)*strlen(nomfichier) + sizeof(char)*strlen(nomdossierdestination) + 1);
+    char* nom_fichier_source = malloc(sizeof(char)*strlen(fileName) + sizeof(char)*strlen(sourceFolderName) + 1);
+    char* nom_fichier_destination = malloc(sizeof(char)*strlen(fileName) + sizeof(char)*strlen(destinationFolderName) + 1);
 
-    strcpy(nom_fichier_source, nomdossiersource);
+    strcpy(nom_fichier_source, sourceFolderName);
     strcat(nom_fichier_source, "/");
-    strcat(nom_fichier_source, nomfichier);
+    strcat(nom_fichier_source, fileName);
 
-    strcpy(nom_fichier_destination, nomdossierdestination);
+    strcpy(nom_fichier_destination, destinationFolderName);
     strcat(nom_fichier_destination, "/");
-    strcat(nom_fichier_destination, nomfichier);
+    strcat(nom_fichier_destination, fileName);
 
-    printf("Nom du fichier => %s\n", nomfichier);
+    printf("Nom du fichier => %s\n", fileName);
 
     fsource = fopen(nom_fichier_source, "r") ;
 
     if(fsource == NULL){
         printf("Erreur lors de l'ouverture du fichier source : %s\n", nom_fichier_source);
-        enregistrer_erreur("Erreur lors de l'ouverture du fichier source.");
+        save_error("Erreur lors de l'ouverture du fichier source.");
         save_data_log(fichier_log, "Module copy: Erreur lors de l'ouverture du fichier source.");
         return 1 ;
     }
@@ -72,7 +72,7 @@ int copier_fichier_vers_dossier(char* nomfichier, char* nomdossiersource, char* 
 
     if(fdestination == NULL){
         printf("Erreur lors de l'ouverture du fichier destination : %s\n", nom_fichier_destination);
-        enregistrer_erreur("Erreur lors de l'ouverture du fichier destination.");
+        save_error("Erreur lors de l'ouverture du fichier destination.");
         save_data_log(fichier_log, "Module copy: Erreur lors de l'ouverture de du fichier destination.");
         return 1 ;
     }
@@ -88,36 +88,36 @@ int copier_fichier_vers_dossier(char* nomfichier, char* nomdossiersource, char* 
 }
 
 
-int fichierExisteDeja(const char *nomFichier, const char *listFile) {
+int file_already_exist(const char *fileName, const char *listFile) {
     FILE *file = fopen(listFile, "r");
     if (file == NULL) {
-        return 0; // Si le fichier listProd.txt n'existe pas
+        return 0;
     }
 
     char line[MAX_LINE_LENGTH];
     while (fgets(line, sizeof(line), file) != NULL) {
-        line[strcspn(line, "\n")] = '\0'; // POur supprimer le saut de ligne à la fin de la ligne
+        line[strcspn(line, "\n")] = '\0';
 
-        if (strstr(line, nomFichier) != NULL) {
+        if (strstr(line, fileName) != NULL) {
             fclose(file);
-            return 1; // Si e fichier existe déjà dans listProd.txt
+            return 1;
         }
     }
 
     fclose(file);
-    return 0; // Si le fichier n'existe pas dans listProd.txt
+    return 0;
 }
 
-void creerListProd(const char *productionRepertoire, const char *listFile) {
+void createListProd(const char *production_directory, const char *listFile) {
     FILE *file = fopen(listFile, "a");
     if (file == NULL) {
         printf("Erreur lors de l'ouverture du fichier.\n");
         return;
     }
 
-    DIR *dir = opendir(productionRepertoire);
+    DIR *dir = opendir(production_directory);
     if (dir == NULL) {
-        printf("Erreur lors de l'ouverture du repertoire %s.\n", productionRepertoire);
+        printf("Erreur lors de l'ouverture du repertoire %s.\n", production_directory);
         return;
     }
     struct dirent *ent;
@@ -126,7 +126,7 @@ void creerListProd(const char *productionRepertoire, const char *listFile) {
             continue;
 
         char filePath[MAX_FILENAME_LENGTH];
-        snprintf(filePath, sizeof(filePath), "%s/%s", productionRepertoire, ent->d_name);
+        snprintf(filePath, sizeof(filePath), "%s/%s", production_directory, ent->d_name);
 
         struct stat fileStat;
         if (stat(filePath, &fileStat) == -1) {
@@ -134,13 +134,11 @@ void creerListProd(const char *productionRepertoire, const char *listFile) {
             continue;
         }
 
-        // Vérifier si le fichier existe déjà dans listProd.txt
-        if (fichierExisteDeja(ent->d_name, listFile)) {
+        if (file_already_exist(ent->d_name, listFile)) {
             printf("Le fichier %s existe deja dans %s. Il ne sera pas ajoute.\n", ent->d_name, listFile);
             continue;
         }
 
-        // Récupérer la date de modification du fichier
         char dateTimeString[MAX_LINE_LENGTH];
         struct tm *modificationTime = localtime(&fileStat.st_mtime);
         strftime(dateTimeString, sizeof(dateTimeString), "%Y-%m-%d %H:%M:%S", modificationTime);

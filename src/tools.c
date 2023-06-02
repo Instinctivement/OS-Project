@@ -1,32 +1,28 @@
 #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <dirent.h>
-#include <string.h>
-#include <sys/stat.h>
 #include <time.h>
 #include "tools.h"
 #define MAX_LINE_LENGTH 512
 
 char* fichier_log = "ModLog/log.txt";
 
-int save_data_log(const char *fichier_log, const char *data)
+int save_data_log(const char *file_log, const char *data)
 {
     FILE *fichier = NULL;
     time_t temps_actuel;
     struct tm *heure_locale;
-    // Obtenir le temps actuel
     temps_actuel = time(NULL);
-    fichier = fopen(fichier_log, "a");
+    fichier = fopen(file_log, "a");
     if (fichier == NULL)
     {
         printf("Erreur lors de l'ouverture de fichier\n.");
-        enregistrer_erreur("Erreur lors de l'ouverture de fichier");
+        save_error("Erreur lors de l'ouverture de fichier");
         return EXIT_FAILURE;
-    }
+    } 
     else
     {
         fprintf(fichier, "%s\t", data);
-        // Récupérer la date de modification du fichier
         char dateTimeString[MAX_LINE_LENGTH];
         struct tm *modificationTime = localtime(&temps_actuel);
         strftime(dateTimeString, sizeof(dateTimeString), "%Y-%m-%d %H:%M:%S", modificationTime);
@@ -39,20 +35,20 @@ int save_data_log(const char *fichier_log, const char *data)
     return EXIT_SUCCESS;
 }
 
-int get_nombre_erreurs()
+int get_error_count()
 {
-    return nombre_ligne_fichier("log/stat_erreur.txt");
+    return file_line_count("log/stat_erreur.txt");
 }
 
-int get_nombre_fichier_recu()
+int get_received_file_count()
 {
-    return nombre_ligne_fichier("log/stat_fichier_recu.txt");
+    return file_line_count("log/stat_fichier_recu.txt");
 }
 
-int nombre_ligne_fichier(char *nomfichier)
+int file_line_count(char* namefile)
 {
 
-    FILE *fichier = fopen(nomfichier, "r");
+    FILE *fichier = fopen(namefile, "r");
 
     if (fichier == NULL)
     {
@@ -71,22 +67,22 @@ int nombre_ligne_fichier(char *nomfichier)
         }
     }
 
-    fclose(fichier); // Ferme le fichier
+    fclose(fichier);
 
     return nombreLignes;
 }
 
-int enregistrer_erreur(char *descriptif)
+int save_error(char* description)
 {
-    return ecrire_ligne_fin_fichier_stat(descriptif, "log/stat_erreur.txt");
+    return write_end_of_file_stat_line(description, "log/stat_erreur.txt");
 }
 
-int enregistrer_fichier_recu(char *nomfichier)
+int save_received_file(char* namefile)
 {
-    return ecrire_ligne_fin_fichier_stat(nomfichier, "log/stat_fichier_recu.txt");
+    return write_end_of_file_stat_line(namefile, "log/stat_fichier_recu.txt");
 }
 
-int ecrire_ligne_fin_fichier_stat(char *ligne, char *nom_fichier)
+int write_end_of_file_stat_line(char* line, char* namefile)
 {
 
     FILE *f = NULL;
@@ -99,7 +95,7 @@ int ecrire_ligne_fin_fichier_stat(char *ligne, char *nom_fichier)
 
     strftime(date_str, sizeof(date_str), "%d-%m-%Y, %H:%M:%S", local_time);
 
-    f = fopen(nom_fichier, "a");
+    f = fopen(namefile, "a");
 
     if (f == NULL)
     {
@@ -107,7 +103,7 @@ int ecrire_ligne_fin_fichier_stat(char *ligne, char *nom_fichier)
         return 1;
     }
 
-    fprintf(f, "%s > %s\n", date_str, ligne);
+    fprintf(f, "%s > %s\n", date_str, line);
 
     fclose(f);
 

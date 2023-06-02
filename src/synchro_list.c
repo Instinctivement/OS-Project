@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <time.h>
 #include "includes.h"
 
 
@@ -16,10 +13,10 @@ FILE* synchroList(const char* file1, const char* file2) {
     printf("%s\n",file1);
     printf("%s\n",file2);
 
-    if (fp1 == NULL || fp2 == NULL ) {
+    if (fp1 == NULL || fp2 == NULL ) { 
 
         printf("Erreur lors de l'ouverture des fichiers.\n");
-        enregistrer_erreur("Erreur lors de l'ouverture des fichiers.");
+        save_error("Erreur lors de l'ouverture des fichiers.");
         save_data_log(fichier_log, "Module Synchro : Erreur lors de l'ouverture des deux fichiers.");
         return NULL;
 
@@ -31,14 +28,13 @@ FILE* synchroList(const char* file1, const char* file2) {
 
     int found;
 
-    // Create the output file
 
-    FILE* fpOutput = fopen("listeAcopier.txt", "w");
+    FILE* fpOutput = fopen("listToCopy.txt", "w");
 
     if (fpOutput == NULL) {
 
         printf("Erreur lors de la création du fichier de sortie.\n");
-        enregistrer_erreur("Erreur lors de la création du fichier de sortie.");
+        save_error("Erreur lors de la création du fichier de sortie.");
         save_data_log(fichier_log, "Module Synchro : Erreur lors de la création du fichier de sortie.");
         fclose(fp1);
 
@@ -47,19 +43,16 @@ FILE* synchroList(const char* file1, const char* file2) {
         return NULL;
     }
 
-    // Parcourir chaque ligne du premier fichier
 
     while (fgets(line1, sizeof(line1), fp1) != NULL) {
 
         found = 0;
 
-        // Parcourir chaque ligne du deuxième fichier
 
-        rewind(fp2); // Réinitialiser la position du curseur au début du fichier
+        rewind(fp2);
 
         while (fgets(line2, sizeof(line2), fp2) != NULL) {
 
-            // Comparer les lignes des deux fichiers (ignorer les sauts de ligne)
 
             if (strcmp(line1, line2) == 0) {
 
@@ -71,14 +64,12 @@ FILE* synchroList(const char* file1, const char* file2) {
 
         }
 
-        // Si la ligne n'a pas été trouvée dans le deuxième fichier, l'écrire dans le fichier de sortie
 
-        if (!found) { 
+        if (!found) {
 
             fputs(line1, fpOutput);
         }
     }
-    // Fermer les fichiers
 
     fclose(fp1);
 
