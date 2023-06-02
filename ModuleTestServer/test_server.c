@@ -25,7 +25,7 @@ void * production(void * arg){
         prod = 1;
         back = 0;
         is_exec = 1;
-        creerListProd("Production", fichierProd);
+        creerListProd("Production", "elementProd.txt");
         V(mutex2);
         V(mutex);
     }
@@ -38,7 +38,7 @@ void * backup(void * arg){
         prod = 0;
         back = 1;
         is_exec=1;
-        creerListProd("Backup", fichierBack);
+        creerListProd("Backup", "elementBack.txt");
         V(mutex2);
         V(mutex);
     }
@@ -50,11 +50,11 @@ void * test_disponibilite_thread(void *arg){
      if(prod == 1){
          actif = 1;
          printf("Serveur de production actif...\n");
-         save_data_log(fichier_log, "Module test dispo: Serveur de production actif pour le transfère de donnée.");
+         save_data_log("ModLog/log.txt", "Module test dispo: Serveur de production actif pour le transfère de donnée.");
      }else{
          actif = 2;
          printf("Serveur de backup actif...\n");
-         save_data_log(fichier_log, "Module test dispo: Serveur de backup actif pour le transfère de donnée.");
+         save_data_log("ModLog/log.txt", "Module test dispo: Serveur de backup actif pour le transfère de donnée.");
      }
      V(sem);
      return NULL;

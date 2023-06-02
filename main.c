@@ -1,6 +1,3 @@
-//
-// Created by tobby on 30/05/23.
-//
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,12 +18,54 @@ sem_t mutex2;
 sem_t sem;
 sem_t sem2;
 int actif = 0, prod = 0, back = 0, is_exec=0;
-const char* fichierProd = "prodList.txt";
-const char* fichierBack = "backList.txt";
-const char* fichierInt = "intList.txt";
-char* fichier_log = "log/log.txt";
-char* nom_fichier_copie = "listeAcopier.txt";
+const char* fichierProd = "elementProd.txt";
+const char* fichierBack = "elementBack.txt";
+const char* fichierInt = "elementInt.txt";
+char* fichier_log = "ModLog/log.txt";
+char* nom_fichier_copie = "listToCopy.txt";
 FILE *fichier_copie = NULL;
+
+
+void * integration(void *arg);
+void * copy_list_thread(void *arg);
+void * synchro_list_thread(void *arg);
+void * test_disponibilite_thread(void *arg);
+void * backup(void * arg);
+void * production(void * arg);
+
+
+int main(){
+    int *ptr1;
+    int *ptr2;
+    int *ptr3;
+    pthread_t integration_t;
+    pthread_t production_t;
+    pthread_t backup_t;
+    sem_init(&mutex, PTHREAD_PROCESS_SHARED, 1);
+    sem_init(&mutex2, PTHREAD_PROCESS_SHARED, 0);
+    printf("\n\tPROJET DE GESTION D'UN SERVEUR D'INTÉGRATION\n");
+    printf("\t---------------------------------------------\n");
+    if(pthread_create(&integration_t, NULL, (void *(*)(void *)) integration, NULL) != 0 ){
+        fprintf(stderr, "Erreur lors de la création du thread d'intégration\n");
+        exit(EXIT_FAILURE);
+    }
+    if(pthread_create(&production_t, NULL, (void *(*)(void *)) production, NULL) != 0 ){
+        fprintf(stderr, "Erreur lors de la création du thread de production\n");
+        exit(EXIT_FAILURE);
+    }
+    if(pthread_create(&backup_t, NULL, (void *(*)(void *)) backup, NULL) != 0 ){
+        fprintf(stderr, "Erreur lors de la création du thread de backup\n");
+        exit(EXIT_FAILURE);
+    }
+    pthread_join(integration_t, (void **) &ptr1);
+    pthread_join(production_t, (void **) &ptr2);
+    pthread_join(backup_t, (void **) &ptr3);
+    printf("\n\tAFFICHAGE DES STATISTIQUES DU SERVEUR\n");
+    printf("\t----------------------------------------\n");
+    printf("\tOn a recu %d erreurs\n", get_nombre_erreurs());
+    printf("\tOn a recu %d fichiers\n", get_nombre_fichier_recu());
+    return EXIT_SUCCESS;
+}
 
 void * production(void * arg){
     if(is_exec==0){
@@ -34,7 +73,7 @@ void * production(void * arg){
         prod = 1;
         back = 0;
         is_exec = 1;
-        creerListProd("Production", fichierProd);
+        creerListProd("ProductionServer", fichierProd);
         V(mutex2);
         V(mutex);
     }
@@ -47,7 +86,7 @@ void * backup(void * arg){
         prod = 0;
         back = 1;
         is_exec=1;
-        creerListProd("Backup", fichierBack);
+        creerListProd("BackupServer", fichierBack);
         V(mutex2);
         V(mutex);
     }
@@ -88,7 +127,7 @@ void * copy_list_thread(void *arg){
     }
     if(valeur==0){
         printf("Copy de list de fichier avec succès\n");
-        creerListProd("Integration", fichierInt);
+        creerListProd("IntergrationServer", fichierInt);
         save_data_log(fichier_log, "Module copy: Copy de list de fichier avec succès");
     }else{
         printf("Erreur lors de la copie du fichier\n");
@@ -128,37 +167,4 @@ void * integration(void *arg){
     pthread_join(thread_test, (void **) &ptr1);
     pthread_join(thread_synchro, (void **) &ptr2);
     pthread_join(thread_backup, (void **) &ptr3);
-}
-
-int main(){
-    int *ptr1;
-    int *ptr2;
-    int *ptr3;
-    pthread_t integration_t;
-    pthread_t production_t;
-    pthread_t backup_t;
-    sem_init(&mutex, PTHREAD_PROCESS_SHARED, 1);
-    sem_init(&mutex2, PTHREAD_PROCESS_SHARED, 0);
-    printf("\n\tPROJET DE GESTION D'UN SERVEUR D'INTÉGRATION\n");
-    printf("\t---------------------------------------------\n");
-    if(pthread_create(&integration_t, NULL, (void *(*)(void *)) integration, NULL) != 0 ){
-        fprintf(stderr, "Erreur lors de la création du thread d'intégration\n");
-        exit(EXIT_FAILURE);
-    }
-    if(pthread_create(&production_t, NULL, (void *(*)(void *)) production, NULL) != 0 ){
-        fprintf(stderr, "Erreur lors de la création du thread de production\n");
-        exit(EXIT_FAILURE);
-    }
-    if(pthread_create(&backup_t, NULL, (void *(*)(void *)) backup, NULL) != 0 ){
-        fprintf(stderr, "Erreur lors de la création du thread de backup\n");
-        exit(EXIT_FAILURE);
-    }
-    pthread_join(integration_t, (void **) &ptr1);
-    pthread_join(production_t, (void **) &ptr2);
-    pthread_join(backup_t, (void **) &ptr3);
-    printf("\n\tAFFICHAGE DES STATISTIQUES DU SERVEUR\n");
-    printf("\t----------------------------------------\n");
-    printf("\tOn a recu %d erreurs\n", get_nombre_erreurs());
-    printf("\tOn a recu %d fichiers\n", get_nombre_fichier_recu());
-    return EXIT_SUCCESS;
 }

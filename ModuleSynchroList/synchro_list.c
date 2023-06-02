@@ -1,5 +1,11 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <time.h>
 #include "synchro_list.h"
+char* fichier_log_f = "ModLog/log.txt";
 
 FILE* synchroList(const char* file1, const char* file2) {
 

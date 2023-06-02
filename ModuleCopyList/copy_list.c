@@ -7,7 +7,7 @@
 #include "copy_list.h"
 #define MAX_FILENAME_LENGTH 512
 #define MAX_LINE_LENGTH 512
-char* fichier_log_f = "log/log.txt";
+char* fichier_log_f = "ModLog/log.txt";
 
 int copy_list(char* nomfichier, char*nomdossiersource, char* nomdossierdestination){
 
